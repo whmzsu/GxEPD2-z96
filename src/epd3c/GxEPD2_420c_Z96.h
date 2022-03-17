@@ -1,8 +1,9 @@
 // Display Library for SPI e-paper panels from Dalian Good Display and boards from Waveshare.
-// Requires HW SPI and Adafruit_GFX. Caution: these e-papers require 3.3V supply AND data lines!
+// Requires HW SPI and Adafruit_GFX.
 //
 // based on Demo Example from Good Display: http://www.e-paper-display.com/download_list/downloadcategoryid=34&isMode=false.html
-// Controller: IL0373 : http://www.e-paper-display.com/download_detail/downloadsId=535.html
+// Panel: GDEH042Z96 : https://www.good-display.com/product/214.html
+// Controller: SSD1619 : no link available currently, see https://www.good-display.cn/comp/xcompanyFile/downloadNew.do?appId=24&fid=322&id=309
 //
 // Author: Jean-Marc Zingg
 //
@@ -10,29 +11,31 @@
 //
 // Library: https://github.com/ZinggJM/GxEPD2
 
-#ifndef _GxEPD2_290c_H_
-#define _GxEPD2_290c_H_
+#ifndef _GxEPD2_420c_Z96_H_
+#define _GxEPD2_420c_Z96_H_
 
 #include "../GxEPD2_EPD.h"
 
-class GxEPD2_290c : public GxEPD2_EPD
+class GxEPD2_420c_Z96 : public GxEPD2_EPD
 {
   public:
     // attributes
-    static const uint16_t WIDTH = 128;
-    static const uint16_t WIDTH_VISIBLE = WIDTH;
-    static const uint16_t HEIGHT = 296;
-    static const GxEPD2::Panel panel = GxEPD2::GDEW029Z10;
+    static const uint16_t WIDTH = 400;
+	static const uint16_t WIDTH_VISIBLE = WIDTH;
+    static const uint16_t HEIGHT = 300;
+    static const GxEPD2::Panel panel = GxEPD2::GDEQ042Z21;
     static const bool hasColor = true;
-    static const bool hasPartialUpdate = true;
-    static const bool usePartialUpdateWindow = true; // set false for better image
+    static const bool hasPartialUpdate = false;
+    static const bool usePartialUpdateWindow = true; // works fine on this panel
     static const bool hasFastPartialUpdate = false;
-    static const uint16_t power_on_time = 40; // ms, e.g. 36557us
-    static const uint16_t power_off_time = 30; // ms, e.g. 20291us
-    static const uint16_t full_refresh_time = 15000; // ms, e.g. 14845408us
-    static const uint16_t partial_refresh_time = 15000; // ms, e.g. 14845408us
+    static const uint16_t power_on_time = 50; // ms, e.g. 42190us
+    static const uint16_t power_off_time = 50; // ms, e.g. 39688us
+    static const uint16_t full_refresh_time = 16000; // ms, e.g. 15171828us
+    static const uint16_t partial_refresh_time = 16000; // ms, e.g. 15171828us
+    static const uint16_t init_time = 16000; // ms, e.g. 15171828us
+    bool wake_up = false;
     // constructor
-    GxEPD2_290c(int16_t cs, int16_t dc, int16_t rst, int16_t busy);
+    GxEPD2_420c_Z96(int16_t cs, int16_t dc, int16_t rst, int16_t busy);
     // methods (virtual)
     //  Support for Bitmaps (Sprites) to Controller Buffer and to Screen
     void clearScreen(uint8_t value = 0xFF); // init controller memory and screen (default white)
@@ -64,8 +67,8 @@ class GxEPD2_290c : public GxEPD2_EPD
   private:
     void _writeScreenBuffer(uint8_t value);
     void _setPartialRamArea(uint16_t x, uint16_t y, uint16_t w, uint16_t h);
-    void _PowerOn();
-    void _PowerOff();
+    //void _PowerOn();
+    //void _PowerOff();
     void _InitDisplay();
     void _Init_Full();
     void _Init_Part();

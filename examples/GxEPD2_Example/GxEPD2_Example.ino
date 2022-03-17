@@ -59,6 +59,7 @@
 // 3-color
 #include "bitmaps/Bitmaps3c200x200.h" // 1.54" b/w/r
 #include "bitmaps/Bitmaps3c104x212.h" // 2.13" b/w/r
+#include "bitmaps/Bitmaps3c128x250.h" // 2.13" b/w/r
 #include "bitmaps/Bitmaps3c128x296.h" // 2.9"  b/w/r
 #include "bitmaps/Bitmaps3c176x264.h" // 2.7"  b/w/r
 #include "bitmaps/Bitmaps3c400x300.h" // 4.2"  b/w/r
@@ -86,10 +87,17 @@
 // 3-color
 //#include "bitmaps/Bitmaps3c200x200.h" // 1.54" b/w/r
 //#include "bitmaps/Bitmaps3c104x212.h" // 2.13" b/w/r
+#include "bitmaps/Bitmaps3c128x250.h" // 2.13" b/w/r
 //#include "bitmaps/Bitmaps3c128x296.h" // 2.9"  b/w/r
 //#include "bitmaps/Bitmaps3c176x264.h" // 2.7"  b/w/r
 ////#include "bitmaps/Bitmaps3c400x300.h" // 4.2"  b/w/r // not enough code space
 
+#endif
+
+#if defined(ARDUINO_ARCH_RP2040) && defined(ARDUINO_RASPBERRY_PI_PICO)
+// SPI pins used by GoodDisplay DESPI-PICO. note: steals standard I2C pins PIN_WIRE_SDA (6), PIN_WIRE_SCL (7)
+// uncomment next line for use with GoodDisplay DESPI-PICO.
+arduino::MbedSPI SPI0(4, 7, 6); // need be valid pins for same SPI channel, else fails blinking 4 long 4 short
 #endif
 
 void setup()
@@ -98,8 +106,16 @@ void setup()
   Serial.println();
   Serial.println("setup");
   delay(100);
+#if defined(ARDUINO_ARCH_RP2040) && defined(ARDUINO_RASPBERRY_PI_PICO)
+  // uncomment next line for use with GoodDisplay DESPI-PICO, or use the extended init method
+  //display.epd2.selectSPI(SPI0, SPISettings(4000000, MSBFIRST, SPI_MODE0));
+  // uncomment next 2 lines to allow recovery from configuration failures
+  pinMode(15, INPUT_PULLUP); // safety pin
+  while (!digitalRead(15)) delay(100); // check safety pin for fail recovery
+#endif
   display.init(115200); // default 10ms reset pulse, e.g. for bare panels with DESPI-C02
   //display.init(115200, true, 2, false); // USE THIS for Waveshare boards with "clever" reset circuit, 2ms reset pulse
+  //display.init(115200, true, 10, false, SPI0, SPISettings(4000000, MSBFIRST, SPI_MODE0)); // extended init method with SPI channel and/or settings selection
   // first update should be full refresh
   helloWorld();
   delay(1000);
@@ -701,6 +717,9 @@ void drawBitmaps()
 #ifdef _GxBitmaps3c104x212_H_
   drawBitmaps3c104x212();
 #endif
+#ifdef _GxBitmaps3c128x250_H_
+  drawBitmaps3c128x250();
+#endif
 #ifdef _GxBitmaps3c128x296_H_
   drawBitmaps3c128x296();
 #endif
@@ -830,6 +849,7 @@ void drawBitmaps200x200()
   const unsigned char* bitmaps[] =
   {
     logo200x200, first200x200, second200x200, third200x200, fourth200x200, fifth200x200, sixth200x200, senventh200x200, eighth200x200
+    //logo200x200, first200x200, second200x200, fourth200x200, third200x200, fifth200x200, sixth200x200, senventh200x200, eighth200x200 // ED037TC1 test
   };
 #endif
   if ((display.epd2.WIDTH == 200) && (display.epd2.HEIGHT == 200) && !display.epd2.hasColor)
@@ -1368,6 +1388,37 @@ void drawBitmaps3c104x212()
 }
 #endif
 
+#ifdef _GxBitmaps3c128x250_H_
+void drawBitmaps3c128x250()
+{
+  if ((display.epd2.WIDTH == 128) && (display.epd2.HEIGHT == 250) && display.epd2.hasColor)
+  {
+    bool mirrored = display.mirror(true);
+    display.firstPage();
+    do
+    {
+      display.fillScreen(GxEPD_WHITE);
+      display.drawInvertedBitmap(0, 0, Bitmap3c128x250_1_black, 128, 250, GxEPD_BLACK);
+      display.drawInvertedBitmap(0, 0, Bitmap3c128x250_1_red, 128, 250, GxEPD_RED);
+    }
+    while (display.nextPage());
+    delay(2000);
+#if !defined(__AVR)
+    display.firstPage();
+    do
+    {
+      display.fillScreen(GxEPD_WHITE);
+      display.drawInvertedBitmap(0, 0, Bitmap3c128x250_2_black, 128, 250, GxEPD_BLACK);
+      display.drawBitmap(0, 0, Bitmap3c128x250_2_red, 128, 250, GxEPD_RED);
+    }
+    while (display.nextPage());
+    delay(2000);
+#endif
+    display.mirror(mirrored);
+  }
+}
+#endif
+
 #ifdef _GxBitmaps3c128x296_H_
 void drawBitmaps3c128x296()
 {
@@ -1576,7 +1627,7 @@ void draw7colorlines()
       display.fillRect(0, y, display.width(), h, GxEPD_ORANGE); y += h;
       display.fillRect(0, y, display.width(), h, GxEPD_WHITE); y += h;
     }
-    while ((y + 12 * h) < display.height());
+    while ((y + 12 * h) < uint16_t(display.height()));
     //display.drawPixel(0, y, GxEPD_BLACK); display.drawPixel(10, y, GxEPD_GREEN);
     //display.drawPixel(20, y, GxEPD_BLUE); display.drawPixel(30, y, GxEPD_RED);
     //display.drawPixel(40, y, GxEPD_YELLOW); display.drawPixel(50, y, GxEPD_ORANGE);
